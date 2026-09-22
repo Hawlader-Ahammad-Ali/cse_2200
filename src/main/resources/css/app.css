@@ -172,3 +172,217 @@
     -fx-font-size: 11.5px;
     -fx-text-fill: -fx-text-secondary;
 }
+/* ============================================================
+   Sources view — Phase 5 additions
+   ============================================================ */
+
+/* Buttons */
+.primary-button {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+
+.primary-button:hover {
+    -fx-background-color: -fx-accent-hover;
+}
+
+.secondary-button {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-text-fill: -fx-text-primary;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14 7 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12.5px;
+}
+
+.secondary-button:hover {
+    -fx-background-color: -fx-border-color-app;
+}
+
+.danger-button {
+    -fx-background-color: -fx-danger;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14 7 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12.5px;
+}
+
+.danger-button:hover {
+    -fx-opacity: 0.85;
+}
+
+/* Search / filter */
+.source-search {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: -fx-border-color-app;
+    -fx-padding: 7 12 7 12;
+    -fx-text-fill: -fx-text-primary;
+    -fx-prompt-text-fill: -fx-text-muted;
+    -fx-font-size: 13px;
+}
+
+.source-search:focused {
+    -fx-border-color: -fx-accent;
+}
+
+.source-filter {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: -fx-border-color-app;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 12.5px;
+}
+
+/* Table */
+.table-view {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -fx-border-color-app;
+    -fx-padding: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-background-radius: 10 10 0 0;
+    -fx-padding: 6 0 6 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 0 8;
+}
+
+.table-row-cell {
+    -fx-background-color: -fx-bg-primary;
+    -fx-border-color: transparent transparent -fx-border-color-app transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cell-size: 38px;
+    -fx-cursor: hand;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: -fx-bg-tertiary;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -fx-accent-soft;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.table-cell {
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 0 0 0 8;
+    -fx-font-size: 12.5px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -fx-text-muted;
+    -fx-font-style: italic;
+}
+
+/* Tag chip */
+.tag-chip {
+    -fx-background-color: -fx-accent-soft;
+    -fx-text-fill: -fx-accent-hover;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 12;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+}
+
+/* Source detail info */
+.source-info-key {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+}
+
+.source-info-value {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 12.5px;
+}
+
+/* Dialog theming */
+.dialog-pane {
+    -fx-background-color: -fx-bg-primary;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: -fx-text-primary;
+}
+
+.dialog-pane .button {
+    -fx-cursor: hand;
+}
+
+.dialog-pane .text-field,
+.dialog-pane .text-area,
+.dialog-pane .combo-box,
+.dialog-pane .date-picker {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-background-radius: 6;
+    -fx-text-fill: -fx-text-primary;
+    -fx-prompt-text-fill: -fx-text-muted;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6;
+}
+
+.dialog-pane .text-field:focused,
+.dialog-pane .text-area:focused,
+.dialog-pane .combo-box:focused,
+.dialog-pane .date-picker:focused {
+    -fx-border-color: -fx-accent;
+}
+
+/* ============================================================
+   Phase 6 additions — knowledge views
+   ============================================================ */
+
+.slider .track {
+    -fx-background-color: -fx-bg-tertiary;
+}
+
+.slider .thumb {
+    -fx-background-color: -fx-accent;
+}
+
+.list-view {
+    -fx-background-color: -fx-bg-primary;
+    -fx-border-color: -fx-border-color-app;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.list-view .list-cell {
+    -fx-background-color: -fx-bg-primary;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 6 10 6 10;
+}
+
+.list-view .list-cell:hover {
+    -fx-background-color: -fx-bg-tertiary;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: -fx-accent-soft;
+    -fx-text-fill: -fx-text-primary;
+}

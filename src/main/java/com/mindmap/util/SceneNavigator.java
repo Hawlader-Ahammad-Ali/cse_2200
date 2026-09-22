@@ -1,6 +1,18 @@
 package com.mindmap.util;
 
-import com.mindmap.view.views.*;
+import com.mindmap.view.knowledge.KnowledgeView;
+import com.mindmap.view.source.SourcesView;
+import com.mindmap.view.views.AnalyticsView;
+import com.mindmap.view.views.DashboardView;
+import com.mindmap.view.views.FlashcardsView;
+import com.mindmap.view.views.GoalsView;
+import com.mindmap.view.views.GraphView;
+import com.mindmap.view.views.QuizView;
+import com.mindmap.view.views.ReviewView;
+import com.mindmap.view.views.SettingsView;
+import com.mindmap.view.views.TimelineView;
+
+
 import javafx.scene.Parent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
