@@ -1,0 +1,137 @@
+/* ============================================================
+   MindMap — Authentication screens (Login / Register)
+   Colors come from theme-light.css / theme-dark.css
+   ============================================================ */
+
+.auth-root {
+    -fx-background-color: linear-gradient(to bottom right,
+    -fx-bg-tertiary, -fx-bg-secondary);
+    -fx-padding: 40;
+}
+
+/* ------------------------------------------------------ theme toggle corner */
+.auth-theme-toggle {
+    -fx-font-size: 18px;
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.auth-theme-toggle:hover {
+    -fx-background-color: -fx-bg-tertiary;
+}
+
+/* ------------------------------------------------------ card */
+.auth-card {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 14;
+    -fx-padding: 34 36 30 36;
+    -fx-effect: dropshadow(gaussian, -fx-shadow, 20, 0, 0, 6);
+}
+
+/* ------------------------------------------------------ brand */
+.auth-brand-icon {
+    -fx-font-size: 42px;
+}
+
+.auth-brand-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.auth-brand-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+    -fx-max-width: 320px;
+}
+
+/* ------------------------------------------------------ card titles */
+.auth-card-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 6 0 0 0;
+}
+
+.auth-card-subtitle {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-padding: 0 0 8 0;
+}
+
+/* ------------------------------------------------------ fields */
+.auth-field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+.auth-text-field {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: transparent;
+    -fx-padding: 8 12 8 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-text-primary;
+    -fx-prompt-text-fill: -fx-text-muted;
+}
+
+.auth-text-field:focused {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.2;
+    -fx-background-color: -fx-bg-primary;
+}
+
+/* ------------------------------------------------------ buttons */
+.auth-primary-button {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-padding: 10 16 10 16;
+}
+
+.auth-primary-button:hover {
+    -fx-background-color: -fx-accent-hover;
+}
+
+.auth-primary-button:pressed {
+    -fx-background-color: -fx-accent-hover;
+    -fx-opacity: 0.9;
+}
+
+/* ------------------------------------------------------ links */
+.auth-link {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.auth-link:hover {
+    -fx-underline: true;
+}
+
+.auth-link-prefix {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+/* ------------------------------------------------------ error */
+.auth-error-label {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fx-danger;
+    -fx-background-color: rgba(231, 76, 60, 0.08);
+    -fx-background-radius: 6;
+    -fx-padding: 8 12 8 12;
+    -fx-wrap-text: true;
+}

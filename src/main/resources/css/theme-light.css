@@ -1,0 +1,27 @@
+/* MindMap — Light Theme (color variables only) */
+.root {
+    -fx-bg-primary:       #FFFFFF;
+    -fx-bg-secondary:     #F5F6FA;
+    -fx-bg-tertiary:      #EEF1F8;
+    -fx-bg-sidebar:       #2C3E50;
+    -fx-bg-sidebar-hover: #3A4F63;
+    -fx-bg-sidebar-active:#1ABC9C;
+
+    -fx-text-primary:     #2C3E50;
+    -fx-text-secondary:   #6B7280;
+    -fx-text-muted:       #9CA3AF;
+    -fx-text-on-sidebar:  #ECF0F1;
+    -fx-text-on-active:   #FFFFFF;
+
+    -fx-accent:           #1ABC9C;
+    -fx-accent-hover:     #16A085;
+    -fx-accent-soft:      #D1F2EB;
+
+    -fx-border-color-app: #E5E7EB;
+    -fx-shadow:           rgba(0, 0, 0, 0.08);
+
+    -fx-danger:           #E74C3C;
+    -fx-warning:          #F39C12;
+    -fx-success:          #27AE60;
+    -fx-info:             #3498DB;
+}

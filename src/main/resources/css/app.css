@@ -1,66 +1,174 @@
-/* =========================================================================
-   MindMap — Application Stylesheet
-   Phase 1: bootstrap screen only. Full theme system added in Phase 2.
-   ========================================================================= */
+/* MindMap — Structural Styles (theme-agnostic).
+   Colors come from theme-light.css or theme-dark.css. */
 
 .root {
     -fx-font-family: "Segoe UI", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 13px;
-    -fx-background-color: #F5F6FA;
+    -fx-background-color: -fx-bg-secondary;
 }
 
-.bootstrap-root {
-    -fx-background-color: linear-gradient(to bottom right, #FFFFFF 0%, #EEF1F8 100%);
+/* ---------------------------------------------------------- sidebar */
+.sidebar {
+    -fx-background-color: -fx-bg-sidebar;
+    -fx-pref-width: 220px;
+    -fx-min-width: 220px;
+    -fx-padding: 18 0 18 0;
 }
 
-.bootstrap-title {
-    -fx-font-size: 32px;
+.sidebar-logo {
+    -fx-font-size: 19px;
     -fx-font-weight: bold;
-    -fx-text-fill: #2C3E50;
+    -fx-text-fill: -fx-text-on-sidebar;
+    -fx-padding: 0 0 18 22;
 }
 
-.bootstrap-subtitle {
-    -fx-font-size: 14px;
-    -fx-text-fill: #6B7280;
+.sidebar-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-on-sidebar;
+    -fx-font-size: 13.5px;
+    -fx-padding: 11 22 11 22;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
 }
 
-.section-header {
-    -fx-font-size: 14px;
+.sidebar-item:hover {
+    -fx-background-color: -fx-bg-sidebar-hover;
+}
+
+.sidebar-item-active {
+    -fx-background-color: -fx-bg-sidebar-active;
+    -fx-text-fill: -fx-text-on-active;
     -fx-font-weight: bold;
-    -fx-text-fill: #374151;
-    -fx-padding: 6 0 2 0;
 }
 
-.info-label {
-    -fx-font-size: 12.5px;
-    -fx-text-fill: #374151;
+.sidebar-separator {
+    -fx-padding: 8 16 8 16;
 }
 
-.info-key {
-    -fx-font-size: 12.5px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #4B5563;
-}
-
-.next-hint {
-    -fx-font-size: 12.5px;
-    -fx-text-fill: #6B7280;
-    -fx-font-style: italic;
-}
-
-.separator .line {
-    -fx-border-color: #E5E7EB;
+.sidebar-separator .line {
+    -fx-border-color: rgba(255, 255, 255, 0.08);
     -fx-border-width: 0.5 0 0 0;
 }
 
-.error-title {
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #B91C1C;
+/* ---------------------------------------------------------- top bar */
+.topbar {
+    -fx-background-color: -fx-bg-primary;
+    -fx-padding: 12 20 12 20;
+    -fx-border-color: -fx-border-color-app;
+    -fx-border-width: 0 0 1 0;
 }
 
-.error-detail {
-    -fx-font-family: "Consolas", "Menlo", monospace;
+.topbar-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.topbar-search {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-prompt-text-fill: -fx-text-muted;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 7 12 7 12;
+    -fx-pref-width: 320px;
+    -fx-border-color: transparent;
+}
+
+.topbar-search:focused {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1;
+}
+
+.topbar-icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 15px;
+    -fx-padding: 6 10 6 10;
+    -fx-cursor: hand;
+    -fx-background-radius: 6;
+}
+
+.topbar-icon-button:hover {
+    -fx-background-color: -fx-bg-tertiary;
+}
+
+/* ---------------------------------------------------------- content */
+.content-area {
+    -fx-background-color: -fx-bg-secondary;
+    -fx-padding: 24 28 24 28;
+}
+
+/* ---------------------------------------------------------- placeholder cards */
+.placeholder-card {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 12;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(gaussian, -fx-shadow, 8, 0, 0, 2);
+}
+
+.placeholder-icon {
+    -fx-font-size: 56px;
+}
+
+.placeholder-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.placeholder-desc {
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-text-alignment: center;
+}
+
+.placeholder-phase {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-accent;
+    -fx-font-weight: bold;
+    -fx-padding: 4 0 0 0;
+}
+
+/* ---------------------------------------------------------- scrollbars */
+.scroll-pane,
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane {
+    -fx-border-color: transparent;
+}
+
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: -fx-border-color-app;
+    -fx-background-radius: 5;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: -fx-text-muted;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ---------------------------------------------------------- status bar */
+.status-bar {
+    -fx-background-color: -fx-bg-primary;
+    -fx-border-color: -fx-border-color-app;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 6 16 6 16;
+}
+
+.status-text {
     -fx-font-size: 11.5px;
-    -fx-text-fill: #7F1D1D;
+    -fx-text-fill: -fx-text-secondary;
 }
