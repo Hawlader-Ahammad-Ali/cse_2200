@@ -443,3 +443,37 @@
 .takeaway-filter-checkbox:selected .mark {
     -fx-background-color: white;
 }
+/* ============================================================
+   Phase 11 — review session
+   ============================================================ */
+
+.progress-bar {
+    -fx-accent: -fx-accent;
+    -fx-pref-height: 8px;
+    -fx-background-radius: 6;
+}
+
+.progress-bar > .track {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-background-radius: 6;
+}
+
+.progress-bar > .bar {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 6;
+    -fx-padding: 4;
+}
+/* ============================================================
+   Phase 12 — flashcards
+   ============================================================ */
+
+.flashcard-preview-question {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.flashcard-preview-answer {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -fx-text-secondary;
+}

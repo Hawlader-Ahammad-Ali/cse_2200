@@ -131,6 +131,17 @@ public class KnowledgeService {
                     linkDAO.link(sid, saved.getId(), "LEARNED_FROM");
                 }
             }
+
+            // Phase 11: enroll the new item in spaced repetition
+            try {
+                ReviewService reviewService = new ReviewService();
+                reviewService.enrollKnowledgeItem(saved.getId());
+            } catch (ServiceException e) {
+                // Non-fatal — log and continue; item is still created
+                org.slf4j.LoggerFactory.getLogger(KnowledgeService.class)
+                        .warn("Could not enroll item in reviews: {}", e.getMessage());
+            }
+
             return knowledgeDAO.findById(saved.getId()).orElse(saved);
         } catch (SQLException e) {
             throw new ServiceException("Could not save knowledge item.", e);

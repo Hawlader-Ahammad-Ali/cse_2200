@@ -5,10 +5,11 @@ import com.mindmap.view.source.SourcesView;
 import com.mindmap.view.views.*;
 import com.mindmap.view.graph.GraphView;
 import com.mindmap.view.settings.SettingsView;
+import com.mindmap.view.flashcard.FlashcardsView;
 import javafx.scene.Parent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.mindmap.view.review.ReviewView;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
