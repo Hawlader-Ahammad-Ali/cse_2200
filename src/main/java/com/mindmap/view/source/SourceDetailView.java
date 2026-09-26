@@ -1,10 +1,14 @@
 package com.mindmap.view.source;
 
+import com.mindmap.ai.dto.SuggestedTopic;
 import com.mindmap.config.ServiceRegistry;
 import com.mindmap.model.KnowledgeItem;
 import com.mindmap.model.Source;
 import com.mindmap.model.Tag;
+import com.mindmap.util.Dialogs;
 import com.mindmap.util.exceptions.ServiceException;
+import com.mindmap.view.knowledge.TakeawayEditorDialog;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -22,9 +26,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Read-only detail view for a single source. The Related Knowledge section
- * is now live: it loads linked knowledge items from
- * {@code SourceKnowledgeDAO} and lets the user click through to them.
+ * Read-only detail view for a single source.
+ *
+ * <p>Phase 10: the "My Takeaways" section is now live. It aggregates all
+ * personal notes from knowledge items linked to this source, and lets the
+ * user edit any takeaway via {@link TakeawayEditorDialog}.</p>
  */
 public class SourceDetailView extends VBox {
 
@@ -36,6 +42,12 @@ public class SourceDetailView extends VBox {
     private final Runnable onDelete;
     private final Runnable onBack;
     private final Consumer<KnowledgeItem> onOpenKnowledge;
+
+    private final Button analyzeBtn    = new Button("🤖  Analyze with AI");
+    private final Label  analyzeStatus = new Label();
+
+    // Cache so we can re-render the takeaway card after edits without a full rebuild
+    private VBox takeawayCard;
 
     public SourceDetailView(Source source,
                             Consumer<Source> onEdit,
@@ -86,17 +98,14 @@ public class SourceDetailView extends VBox {
         VBox body = new VBox(14);
         body.setPadding(new Insets(4, 2, 4, 2));
 
+        takeawayCard = buildTakeawayCard();   // built once, refreshed on edit
+
         body.getChildren().addAll(
                 buildTitleCard(),
                 buildInfoCard(),
-                buildPlaceholderCard("🤖  AI Suggested Learning",
-                        "Topics, concepts, and skills suggested by AI will appear here. "
-                                + "You will review and confirm them before they enter your knowledge base.",
-                        "Phase 9 — AI Learning Extraction"),
+                buildAICard(),
                 buildRelatedKnowledgeCard(),
-                buildPlaceholderCard("📝  My Takeaways",
-                        "Your personal notes and lessons learned from this source will appear here.",
-                        "Phase 10 — Personal Takeaways")
+                takeawayCard
         );
 
         ScrollPane scroll = new ScrollPane(body);
@@ -178,7 +187,60 @@ public class SourceDetailView extends VBox {
         return card;
     }
 
-    /** Live Related Knowledge section. */
+    private VBox buildAICard() {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("card");
+
+        Label header = new Label("🤖  AI Suggested Learning");
+        header.getStyleClass().add("section-header");
+
+        Label desc = new Label("Ask the AI to suggest POSSIBLE learning themes from this source. "
+                + "You review each suggestion and decide what becomes part of your knowledge base.");
+        desc.setWrapText(true);
+        desc.getStyleClass().add("placeholder-desc");
+
+        analyzeBtn.getStyleClass().add("primary-button");
+        analyzeBtn.setOnAction(e -> runAnalysis());
+
+        analyzeStatus.getStyleClass().add("view-subtitle");
+        analyzeStatus.setPadding(new Insets(2, 0, 0, 4));
+
+        HBox actions = new HBox(10, analyzeBtn, analyzeStatus);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        card.getChildren().addAll(header, desc, new Separator(), actions);
+        return card;
+    }
+
+    private void runAnalysis() {
+        analyzeBtn.setDisable(true);
+        analyzeStatus.setText("Analyzing… this may take a few seconds.");
+
+        new Thread(() -> {
+            try {
+                List<SuggestedTopic> topics =
+                        ServiceRegistry.aiService().analyzeSource(source);
+
+                Platform.runLater(() -> {
+                    analyzeStatus.setText(topics.size() + " suggestions received.");
+                    analyzeBtn.setDisable(false);
+
+                    AIAnalysisDialog dlg = new AIAnalysisDialog(source, topics);
+                    dlg.showAndWait().ifPresent(created -> {
+                        analyzeStatus.setText(created.size() + " items added to your knowledge.");
+                        refreshTakeawayCard();
+                    });
+                });
+            } catch (ServiceException ex) {
+                Platform.runLater(() -> {
+                    analyzeStatus.setText("Failed.");
+                    analyzeBtn.setDisable(false);
+                    Dialogs.error("AI analysis failed", ex.getMessage());
+                });
+            }
+        }, "ai-analysis-worker").start();
+    }
+
     private VBox buildRelatedKnowledgeCard() {
         VBox card = new VBox(8);
         card.getStyleClass().add("card");
@@ -191,15 +253,15 @@ public class SourceDetailView extends VBox {
         try {
             items = ServiceRegistry.knowledgeService().getKnowledgeForSource(source.getId());
         } catch (ServiceException e) {
-            Label error = new Label("Could not load related knowledge.");
-            error.getStyleClass().add("placeholder-desc");
-            card.getChildren().add(error);
+            Label err = new Label("Could not load related knowledge.");
+            err.getStyleClass().add("placeholder-desc");
+            card.getChildren().add(err);
             return card;
         }
 
         if (items.isEmpty()) {
             Label empty = new Label("No knowledge items linked to this source yet. "
-                    + "Add some from the Knowledge page, or use AI analysis (Phase 9).");
+                    + "Use the AI button above to generate suggestions, or add items manually.");
             empty.getStyleClass().add("placeholder-desc");
             empty.setWrapText(true);
             card.getChildren().add(empty);
@@ -210,7 +272,6 @@ public class SourceDetailView extends VBox {
             HBox row = new HBox(10);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(6, 0, 6, 0));
-            row.setStyle("-fx-cursor: hand;");
 
             Label icon = new Label(k.getItemType().getIcon());
             icon.setStyle("-fx-font-size: 18px;");
@@ -219,15 +280,13 @@ public class SourceDetailView extends VBox {
             title.getStyleClass().add("source-info-value");
             HBox.setHgrow(title, Priority.ALWAYS);
 
-            Label type = new Label(k.getItemType().getLabel());
-            type.setStyle("-fx-text-fill: -fx-text-muted; -fx-font-size: 11.5px;");
+            Label origin = new Label(k.getOrigin().getDisplay());
+            origin.setStyle("-fx-text-fill: -fx-text-muted; -fx-font-size: 11px;");
 
-            row.getChildren().addAll(icon, title, type);
-
+            row.getChildren().addAll(icon, title, origin);
             row.setOnMouseClicked(e -> {
                 if (onOpenKnowledge != null) onOpenKnowledge.accept(k);
             });
-            // Hover effect
             row.setOnMouseEntered(e -> row.setStyle(
                     "-fx-cursor: hand; -fx-background-color: -fx-bg-tertiary; -fx-background-radius: 6;"));
             row.setOnMouseExited(e -> row.setStyle("-fx-cursor: hand;"));
@@ -237,15 +296,131 @@ public class SourceDetailView extends VBox {
         return card;
     }
 
+    // ------------------------------------------------------------- takeaways (live)
+
+    private VBox buildTakeawayCard() {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("card");
+
+        Label header = new Label("📝  My Takeaways");
+        header.getStyleClass().add("section-header");
+        card.getChildren().add(header);
+
+        List<KnowledgeItem> withTakeaways;
+        try {
+            List<KnowledgeItem> allItems =
+                    ServiceRegistry.knowledgeService().getKnowledgeForSource(source.getId());
+            withTakeaways = allItems.stream()
+                    .filter(k -> k.getPersonalNote() != null && !k.getPersonalNote().isBlank())
+                    .toList();
+        } catch (ServiceException e) {
+            Label err = new Label("Could not load takeaways.");
+            err.getStyleClass().add("placeholder-desc");
+            card.getChildren().add(err);
+            return card;
+        }
+
+        int totalItems;
+        try {
+            totalItems = ServiceRegistry.knowledgeService()
+                    .getKnowledgeForSource(source.getId()).size();
+        } catch (ServiceException e) {
+            totalItems = 0;
+        }
+
+        if (withTakeaways.isEmpty()) {
+            Label empty = new Label("You haven't written any takeaways yet for the concepts "
+                    + "linked to this source. Open a knowledge item and use the 📝 Edit Takeaway "
+                    + "button, or click a related item above to add yours.");
+            empty.getStyleClass().add("placeholder-desc");
+            empty.setWrapText(true);
+            card.getChildren().add(empty);
+            return card;
+        }
+
+        // Summary line
+        Label summary = new Label(withTakeaways.size() + " of " + totalItems
+                + " linked item" + (totalItems == 1 ? "" : "s")
+                + " ha" + (totalItems == 1 ? "s" : "ve") + " a personal takeaway.");
+        summary.setStyle("-fx-text-fill: -fx-text-secondary; -fx-font-size: 12px;");
+        card.getChildren().add(summary);
+
+        card.getChildren().add(new Separator());
+
+        // Each takeaway as an editable card
+        for (KnowledgeItem k : withTakeaways) {
+            VBox row = new VBox(4);
+            row.setPadding(new Insets(8, 10, 8, 10));
+            row.setStyle("-fx-background-color: -fx-bg-tertiary; -fx-background-radius: 8;");
+
+            // Header row: icon + title + edit button
+            Label icon = new Label(k.getItemType().getIcon());
+            icon.setStyle("-fx-font-size: 15px;");
+
+            Label title = new Label(k.getTitle());
+            title.setStyle("-fx-text-fill: -fx-text-primary; -fx-font-size: 12.5px; -fx-font-weight: bold;");
+            title.setWrapText(true);
+            HBox.setHgrow(title, Priority.ALWAYS);
+
+            Button editBtn = new Button("✎");
+            editBtn.getStyleClass().add("takeaway-edit-button");
+            editBtn.setTooltip(new javafx.scene.control.Tooltip("Edit this takeaway"));
+            editBtn.setOnAction(e -> openTakeawayEditor(k));
+
+            HBox titleRow = new HBox(6, icon, title, editBtn);
+            titleRow.setAlignment(Pos.CENTER_LEFT);
+
+            // The takeaway body
+            Label body = new Label(k.getPersonalNote());
+            body.setWrapText(true);
+            body.setStyle("-fx-text-fill: -fx-text-secondary; -fx-font-size: 12.5px; -fx-padding: 2 0 0 22;");
+
+            row.getChildren().addAll(titleRow, body);
+
+            // Hover effect
+            row.setOnMouseEntered(e -> row.setStyle(
+                    "-fx-background-color: -fx-accent-soft; -fx-background-radius: 8;"));
+            row.setOnMouseExited(e -> row.setStyle(
+                    "-fx-background-color: -fx-bg-tertiary; -fx-background-radius: 8;"));
+
+            card.getChildren().add(row);
+        }
+
+        return card;
+    }
+
+    /** Replaces the takeaway card in the body with a freshly built one. */
+    private void refreshTakeawayCard() {
+        if (takeawayCard == null) return;
+        VBox parent = (VBox) takeawayCard.getParent();
+        if (parent == null) return;
+        int idx = parent.getChildren().indexOf(takeawayCard);
+        if (idx < 0) return;
+
+        takeawayCard = buildTakeawayCard();
+        parent.getChildren().set(idx, takeawayCard);
+    }
+
+    private void openTakeawayEditor(KnowledgeItem item) {
+        TakeawayEditorDialog dlg = new TakeawayEditorDialog(item);
+        dlg.showAndWait().ifPresent(saved -> {
+            refreshTakeawayCard();
+            // Also notify the caller so it can refresh if needed
+            if (onOpenKnowledge != null) {
+                // No-op — just giving the caller a hook if they want to do something
+            }
+        });
+    }
+
+    // ------------------------------------------------------------- helpers
+
     private HBox infoRow(String key, String value) {
         Label k = new Label(key + ":");
         k.getStyleClass().add("source-info-key");
         k.setMinWidth(90);
-
         Label v = new Label(value);
         v.getStyleClass().add("source-info-value");
         v.setWrapText(true);
-
         HBox row = new HBox(8, k, v);
         row.setAlignment(Pos.TOP_LEFT);
         return row;
@@ -258,21 +433,5 @@ public class SourceDetailView extends VBox {
         HBox row = new HBox(8, k, node);
         row.setAlignment(Pos.TOP_LEFT);
         return row;
-    }
-
-    private VBox buildPlaceholderCard(String title, String description, String phase) {
-        Label titleLbl = new Label(title);
-        titleLbl.getStyleClass().add("section-header");
-
-        Label descLbl = new Label(description);
-        descLbl.setWrapText(true);
-        descLbl.getStyleClass().add("placeholder-desc");
-
-        Label phaseLbl = new Label(phase);
-        phaseLbl.getStyleClass().add("placeholder-phase");
-
-        VBox card = new VBox(6, titleLbl, descLbl, phaseLbl);
-        card.getStyleClass().add("card");
-        return card;
     }
 }

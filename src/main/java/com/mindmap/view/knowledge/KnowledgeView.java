@@ -6,13 +6,22 @@ import com.mindmap.model.KnowledgeType;
 import com.mindmap.service.KnowledgeService;
 import com.mindmap.util.AppContext;
 import com.mindmap.util.Dialogs;
+import com.mindmap.util.SceneNavigator;
 import com.mindmap.util.exceptions.ServiceException;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -25,8 +34,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Knowledge list + filters. Clicking a row opens {@link KnowledgeDetailView}
- * in place (StackPane swap).
+ * Knowledge list + filters. Includes a "Has Takeaway" filter (Phase 10).
+ * Clicking a row opens {@link KnowledgeDetailView} in place.
  */
 public class KnowledgeView extends StackPane {
 
@@ -37,19 +46,32 @@ public class KnowledgeView extends StackPane {
     private final ObservableList<KnowledgeItem> data = FXCollections.observableArrayList();
 
     private final TableView<KnowledgeItem> table = new TableView<>(data);
-    private final TextField        searchField  = new TextField();
-    private final ComboBox<String> typeFilter   = new ComboBox<>();
+    private final TextField        searchField    = new TextField();
+    private final ComboBox<String> typeFilter     = new ComboBox<>();
     private final ComboBox<String> categoryFilter = new ComboBox<>();
-    private final Label            countLabel   = new Label("0 items");
+    private final CheckBox         takeawayFilter = new CheckBox("Has Takeaway");
+    private final Label            countLabel     = new Label("0 items");
 
     private final VBox      listRoot;
     private final StackPane contentStack = new StackPane();
 
+    // ------------------------------------------------------ static deep-link handoff
+    private static KnowledgeView currentInstance;
+    private static Integer pendingKnowledgeId;
+
     public KnowledgeView() {
+        currentInstance = this;
+
         listRoot = buildListRoot();
         contentStack.getChildren().add(listRoot);
         getChildren().add(contentStack);
         refresh();
+
+        if (pendingKnowledgeId != null) {
+            final int id = pendingKnowledgeId;
+            pendingKnowledgeId = null;
+            Platform.runLater(() -> openKnowledgeById(id));
+        }
     }
 
     // ------------------------------------------------------------- list
@@ -76,7 +98,7 @@ public class KnowledgeView extends StackPane {
 
         searchField.getStyleClass().add("source-search");
         searchField.setPromptText("🔍  Search by title, description, takeaway, category…");
-        searchField.setPrefWidth(320);
+        searchField.setPrefWidth(280);
         searchField.textProperty().addListener((o, ov, nv) -> refresh());
 
         typeFilter.getItems().add("All Types");
@@ -90,15 +112,20 @@ public class KnowledgeView extends StackPane {
         categoryFilter.getStyleClass().add("source-filter");
         categoryFilter.setOnAction(e -> refresh());
 
+        takeawayFilter.getStyleClass().add("takeaway-filter-checkbox");
+        takeawayFilter.selectedProperty().addListener((o, ov, nv) -> refresh());
+
         Button clearBtn = new Button("Clear");
         clearBtn.getStyleClass().add("secondary-button");
         clearBtn.setOnAction(e -> {
             searchField.clear();
             typeFilter.setValue("All Types");
             categoryFilter.setValue("All Categories");
+            takeawayFilter.setSelected(false);
         });
 
-        HBox filters = new HBox(10, searchField, typeFilter, categoryFilter, clearBtn);
+        HBox filters = new HBox(10, searchField, typeFilter, categoryFilter,
+                takeawayFilter, clearBtn);
         filters.setAlignment(Pos.CENTER_LEFT);
         filters.setPadding(new Insets(4, 0, 8, 0));
 
@@ -116,39 +143,40 @@ public class KnowledgeView extends StackPane {
 
         TableColumn<KnowledgeItem, String> titleCol = new TableColumn<>("Title");
         titleCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getTitle()));
-        titleCol.setPrefWidth(280);
+        titleCol.setPrefWidth(260);
 
         TableColumn<KnowledgeItem, String> typeCol = new TableColumn<>("Type");
         typeCol.setCellValueFactory(cd -> new SimpleStringProperty(
                 cd.getValue().getItemType().getIcon() + " " + cd.getValue().getItemType().getLabel()));
-        typeCol.setPrefWidth(120);
+        typeCol.setPrefWidth(110);
 
         TableColumn<KnowledgeItem, String> catCol = new TableColumn<>("Category");
         catCol.setCellValueFactory(cd -> new SimpleStringProperty(
                 cd.getValue().getCategory() == null ? "" : cd.getValue().getCategory()));
-        catCol.setPrefWidth(140);
+        catCol.setPrefWidth(130);
 
         TableColumn<KnowledgeItem, String> impCol = new TableColumn<>("Importance");
         impCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getImportance()));
-        impCol.setPrefWidth(100);
+        impCol.setPrefWidth(90);
 
-        TableColumn<KnowledgeItem, String> diffCol = new TableColumn<>("Difficulty");
-        diffCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getDifficulty()));
-        diffCol.setPrefWidth(100);
-
-        TableColumn<KnowledgeItem, String> confCol = new TableColumn<>("Confidence");
-        confCol.setCellValueFactory(cd -> new SimpleStringProperty("★".repeat(cd.getValue().getConfidence())));
-        confCol.setPrefWidth(110);
+        TableColumn<KnowledgeItem, String> takeawayCol = new TableColumn<>("Takeaway");
+        takeawayCol.setCellValueFactory(cd -> {
+            String note = cd.getValue().getPersonalNote();
+            if (note == null || note.isBlank()) return new SimpleStringProperty("");
+            String snippet = note.length() > 45 ? note.substring(0, 42) + "…" : note;
+            return new SimpleStringProperty("📝  " + snippet);
+        });
+        takeawayCol.setPrefWidth(240);
 
         TableColumn<KnowledgeItem, String> originCol = new TableColumn<>("Origin");
         originCol.setCellValueFactory(cd -> new SimpleStringProperty(
                 cd.getValue().getOrigin().getIcon() + " " + cd.getValue().getOrigin().getLabel()));
-        originCol.setPrefWidth(140);
+        originCol.setPrefWidth(130);
 
-        table.getColumns().addAll(titleCol, typeCol, catCol, impCol, diffCol, confCol, originCol);
+        table.getColumns().addAll(titleCol, typeCol, catCol, impCol, takeawayCol, originCol);
 
         table.setRowFactory(tv -> {
-            var row = new TableRow<KnowledgeItem>();
+            TableRow<KnowledgeItem> row = new TableRow<>();
             row.setOnMouseClicked(e -> {
                 if (!row.isEmpty()) showDetail(row.getItem());
             });
@@ -160,7 +188,6 @@ public class KnowledgeView extends StackPane {
 
     private void refresh() {
         try {
-            // Refresh category list from data
             List<String> cats = service.getCategories();
             String currentCat = categoryFilter.getValue();
             categoryFilter.getItems().setAll("All Categories");
@@ -182,6 +209,12 @@ public class KnowledgeView extends StackPane {
             String catSel = categoryFilter.getValue();
             if (catSel != null && !catSel.equals("All Categories")) {
                 rows = rows.stream().filter(k -> catSel.equals(k.getCategory())).toList();
+            }
+
+            if (takeawayFilter.isSelected()) {
+                rows = rows.stream()
+                        .filter(k -> k.getPersonalNote() != null && !k.getPersonalNote().isBlank())
+                        .toList();
             }
 
             String q = searchField.getText();
@@ -268,5 +301,25 @@ public class KnowledgeView extends StackPane {
     private void showList() {
         contentStack.getChildren().setAll(listRoot);
         refresh();
+    }
+
+    // ------------------------------------------------------ deep linking
+
+    public static void navigateAndOpen(int knowledgeId) {
+        SceneNavigator nav = SceneNavigator.getInstance();
+        if (SceneNavigator.KNOWLEDGE.equals(nav.getCurrentViewId()) && currentInstance != null) {
+            currentInstance.openKnowledgeById(knowledgeId);
+        } else {
+            pendingKnowledgeId = knowledgeId;
+            nav.navigateTo(SceneNavigator.KNOWLEDGE);
+        }
+    }
+
+    private void openKnowledgeById(int id) {
+        try {
+            service.getById(id).ifPresent(this::showDetail);
+        } catch (ServiceException e) {
+            Dialogs.error("Could not open item", e.getMessage());
+        }
     }
 }

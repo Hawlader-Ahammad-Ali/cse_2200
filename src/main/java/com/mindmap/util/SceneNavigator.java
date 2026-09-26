@@ -2,17 +2,9 @@ package com.mindmap.util;
 
 import com.mindmap.view.knowledge.KnowledgeView;
 import com.mindmap.view.source.SourcesView;
-import com.mindmap.view.views.AnalyticsView;
-import com.mindmap.view.views.DashboardView;
-import com.mindmap.view.views.FlashcardsView;
-import com.mindmap.view.views.GoalsView;
-import com.mindmap.view.views.GraphView;
-import com.mindmap.view.views.QuizView;
-import com.mindmap.view.views.ReviewView;
-import com.mindmap.view.views.SettingsView;
-import com.mindmap.view.views.TimelineView;
-
-
+import com.mindmap.view.views.*;
+import com.mindmap.view.graph.GraphView;
+import com.mindmap.view.settings.SettingsView;
 import javafx.scene.Parent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +16,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Central view router. The main window has a fixed sidebar + top bar;
+ * Central view router. MainLayout owns the sidebar + top bar;
  * only the center content area changes when the user navigates.
  */
 public final class SceneNavigator {
 
     private static final Logger log = LoggerFactory.getLogger(SceneNavigator.class);
 
-    // Public view identifiers
     public static final String DASHBOARD   = "dashboard";
     public static final String SOURCES     = "sources";
     public static final String KNOWLEDGE   = "knowledge";
@@ -43,6 +34,8 @@ public final class SceneNavigator {
     public static final String ANALYTICS   = "analytics";
     public static final String GOALS       = "goals";
     public static final String SETTINGS    = "settings";
+    /** Pseudo-id — the search results page is not a sidebar item. */
+    public static final String SEARCH      = "search";
 
     private static final SceneNavigator INSTANCE = new SceneNavigator();
 
@@ -56,17 +49,12 @@ public final class SceneNavigator {
 
     public static SceneNavigator getInstance() { return INSTANCE; }
 
-    /** MainLayout sets itself as the host so views can be injected. */
-    public void setHost(ContentHost host) {
-        this.host = host;
-    }
+    public void setHost(ContentHost host) { this.host = host; }
 
-    /** Register a view factory (called once at startup). */
     public void register(String viewId, Supplier<Parent> viewFactory) {
         views.put(viewId, viewFactory);
     }
 
-    /** Registers all Phase-2 views. */
     public void registerDefaultViews() {
         register(DASHBOARD,  DashboardView::new);
         register(SOURCES,    SourcesView::new);
@@ -82,13 +70,22 @@ public final class SceneNavigator {
         log.debug("Registered {} views", views.size());
     }
 
-    /** Navigate to a view by id. No-op if already active. */
+    /** Navigate to a registered view by id. No-op if already active. */
     public void navigateTo(String viewId) {
+        navigateTo(viewId, null);
+    }
+
+    /**
+     * Navigate to a registered view with an optional title override.
+     * A null title means use the default pretty title for that view.
+     */
+    public void navigateTo(String viewId, String titleOverride) {
         if (host == null) {
             log.warn("SceneNavigator host not set.");
             return;
         }
-        if (viewId == null || viewId.equals(currentViewId)) return;
+        if (viewId == null) return;
+        if (viewId.equals(currentViewId) && titleOverride == null) return;
 
         Supplier<Parent> factory = views.get(viewId);
         if (factory == null) {
@@ -96,23 +93,35 @@ public final class SceneNavigator {
             return;
         }
 
-        if (currentViewId != null) {
+        if (currentViewId != null && !viewId.equals(currentViewId)) {
             history.push(currentViewId);
             if (history.size() > 50) history.removeLast();
         }
         currentViewId = viewId;
-        host.setContent(factory.get(), viewId);
+        host.setContent(factory.get(), viewId, titleOverride);
+    }
+
+    /**
+     * Shows a one-off, non-registered view (like search results).
+     * Sets the current view id so back-navigation still works.
+     */
+    public void showOneOffView(String viewId, Parent content, String title) {
+        if (host == null) return;
+        if (currentViewId != null && !viewId.equals(currentViewId)) {
+            history.push(currentViewId);
+            if (history.size() > 50) history.removeLast();
+        }
+        currentViewId = viewId;
+        host.setContent(content, viewId, title);
     }
 
     /** Navigate back to the previous view, if any. */
     public void goBack() {
         if (history.isEmpty()) return;
         String previous = history.pop();
-        // Temporarily clear so navigateTo doesn't re-push
         String saved = currentViewId;
         currentViewId = null;
         navigateTo(previous);
-        // Avoid duplicated history entry for the view we came from
         if (!history.isEmpty() && saved != null && history.peek().equals(saved)) {
             history.pop();
         }
@@ -120,8 +129,8 @@ public final class SceneNavigator {
 
     public String getCurrentViewId() { return currentViewId; }
 
-    /** Implemented by MainLayout. */
+    /** Implemented by MainLayout. Title override is optional (may be null). */
     public interface ContentHost {
-        void setContent(Parent content, String viewId);
+        void setContent(Parent content, String viewId, String titleOverride);
     }
 }

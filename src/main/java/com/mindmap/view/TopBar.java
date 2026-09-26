@@ -1,9 +1,13 @@
 package com.mindmap.view;
 
 import com.mindmap.config.ServiceRegistry;
+import com.mindmap.model.SearchResults;
 import com.mindmap.util.AppContext;
+import com.mindmap.util.Dialogs;
 import com.mindmap.util.RootNavigator;
 import com.mindmap.util.SceneNavigator;
+import com.mindmap.util.exceptions.ServiceException;
+import com.mindmap.view.search.SearchResultsView;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -23,7 +27,7 @@ import java.util.Optional;
 
 /**
  * Top bar: view title, global search, theme toggle, user menu.
- * The user menu is populated after login and offers Profile / Settings / Logout.
+ * Search now executes against the SearchService on Enter.
  */
 public class TopBar extends HBox {
 
@@ -46,13 +50,8 @@ public class TopBar extends HBox {
 
         searchField.getStyleClass().add("topbar-search");
         searchField.setPromptText("🔍  Search sources, knowledge, tags…   (Ctrl+K)");
-        searchField.setTooltip(new Tooltip("Global search — Phase 7"));
-        searchField.setOnAction(e -> {
-            String q = searchField.getText();
-            if (q != null && !q.isBlank()) {
-                AppContext.getInstance().setStatusMessage("Search (Phase 7): " + q);
-            }
-        });
+        searchField.setTooltip(new Tooltip("Search all your data — press Enter"));
+        searchField.setOnAction(e -> performSearch());
 
         themeToggle.getStyleClass().add("topbar-icon-button");
         themeToggle.setTooltip(new Tooltip("Toggle light / dark theme  (Ctrl+T)"));
@@ -65,7 +64,6 @@ public class TopBar extends HBox {
 
         getChildren().addAll(titleLabel, spacer, searchField, themeToggle, userMenu);
 
-        // Refresh menu label whenever the logged-in user changes
         AppContext.getInstance().currentUserProperty().addListener(
                 (obs, oldU, newU) -> refreshUserMenuLabel());
         refreshUserMenuLabel();
@@ -82,6 +80,25 @@ public class TopBar extends HBox {
 
     public void refreshThemeIcon() {
         themeToggle.setText(AppContext.getInstance().isDarkTheme() ? "☀" : "🌙");
+    }
+
+    // ------------------------------------------------------------ search
+
+    private void performSearch() {
+        String q = searchField.getText();
+        if (q == null || q.isBlank()) return;
+
+        try {
+            SearchResults results = ServiceRegistry.searchService().search(q);
+            SearchResultsView view = new SearchResultsView(results);
+            SceneNavigator.getInstance().showOneOffView(
+                    SceneNavigator.SEARCH,
+                    view,
+                    "Search: " + q
+            );
+        } catch (ServiceException e) {
+            Dialogs.error("Search failed", e.getMessage());
+        }
     }
 
     // ------------------------------------------------------------ user menu

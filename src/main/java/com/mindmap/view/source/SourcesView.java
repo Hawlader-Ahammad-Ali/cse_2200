@@ -1,5 +1,7 @@
 package com.mindmap.view.source;
 
+import com.mindmap.util.SceneNavigator;
+import javafx.application.Platform;
 import com.mindmap.model.KnowledgeItem;
 import com.mindmap.config.ServiceRegistry;
 import com.mindmap.model.Source;
@@ -35,6 +37,7 @@ import java.util.Optional;
 
 import static java.time.zone.ZoneRulesProvider.refresh;
 
+
 /**
  * Sources list + filter bar. Clicking a row opens {@link SourceDetailView}
  * in place (StackPane swap), so no new window is needed.
@@ -57,14 +60,25 @@ public class SourcesView extends StackPane {
 
     private final VBox listRoot;
     private final StackPane contentStack = new StackPane();
-
+    // ------------------------------------------------------ static deep-link handoff
+    private static SourcesView currentInstance;
+    private static Integer pendingSourceId;
     public SourcesView() {
+        currentInstance = this;
+
         listRoot = buildListRoot();
 
         contentStack.getChildren().add(listRoot);
         getChildren().add(contentStack);
 
         refresh();
+
+        // Handle a pending deep-link request (from search or elsewhere)
+        if (pendingSourceId != null) {
+            final int id = pendingSourceId;
+            pendingSourceId = null;
+            Platform.runLater(() -> openSourceById(id));
+        }
     }
 
     // ------------------------------------------------------------- list view
@@ -303,4 +317,29 @@ private void openKnowledgeItem(KnowledgeItem item) {
     com.mindmap.util.SceneNavigator.getInstance()
             .navigateTo(com.mindmap.util.SceneNavigator.KNOWLEDGE);
 }
+// ------------------------------------------------------ deep linking
+
+    /**
+     * Called from search results (or anywhere): navigates to Sources
+     * and opens the given source's detail page.
+     */
+    public static void navigateAndOpen(int sourceId) {
+        SceneNavigator nav = SceneNavigator.getInstance();
+        if (SceneNavigator.SOURCES.equals(nav.getCurrentViewId()) && currentInstance != null) {
+            // Already on sources — open directly, no re-navigation needed
+            currentInstance.openSourceById(sourceId);
+        } else {
+            pendingSourceId = sourceId;
+            nav.navigateTo(SceneNavigator.SOURCES);
+        }
+    }
+
+    /** Opens the source with this id, if it exists and belongs to the user. */
+    private void openSourceById(int sourceId) {
+        try {
+            service.getById(sourceId).ifPresent(this::showDetail);
+        } catch (ServiceException e) {
+            Dialogs.error("Could not open source", e.getMessage());
+        }
+    }
 }
