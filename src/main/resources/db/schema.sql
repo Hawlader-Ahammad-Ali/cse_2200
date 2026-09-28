@@ -326,3 +326,20 @@ CREATE INDEX idx_ai_sugg_source ON ai_suggestions(source_id);
 -- RECORD SCHEMA VERSION
 -- =============================================================================
 INSERT INTO schema_version (version) VALUES (1);
+-- =========================================================================
+-- NOTES (User's text notes, optionally linked to a source)
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS notes (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id            INTEGER NOT NULL,
+    title              TEXT NOT NULL,
+    body               TEXT,
+    attached_source_id INTEGER,
+    created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at         TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(attached_source_id) REFERENCES sources(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
+CREATE INDEX IF NOT EXISTS idx_notes_source_id ON notes(attached_source_id);

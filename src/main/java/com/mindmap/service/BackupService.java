@@ -52,7 +52,8 @@ public class BackupService {
             "quiz_questions",
             "quiz_attempts",
             "study_sessions",
-            "goals"
+            "goals",
+            "notes"
     );
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -421,7 +422,8 @@ public class BackupService {
                 remapFK(out, "quiz_question_id", idMaps.get("quiz_questions"));
             }
             case "study_sessions"   -> { /* user_id only */ }
-            case "goals"            -> { /* user_id only */ }
+            case "goals",
+            "notes"            -> { /* user_id only */ }
             case "source_tags"      -> {
                 remapFK(out, "source_id", idMaps.get("sources"));
                 remapFK(out, "tag_id",    idMaps.get("tags"));

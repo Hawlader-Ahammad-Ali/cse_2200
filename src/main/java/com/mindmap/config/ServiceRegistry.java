@@ -77,5 +77,11 @@ public final class ServiceRegistry {
         return goalService;
     }
 
+    private static NoteService noteService;
+    public static synchronized NoteService noteService() {
+        if (noteService == null) noteService = new NoteService();
+        return noteService;
+    }
+
     public static synchronized void reset() { }
 }

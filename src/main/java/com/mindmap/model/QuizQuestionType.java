@@ -3,7 +3,8 @@ package com.mindmap.model;
 public enum QuizQuestionType {
     MCQ       ("Multiple choice"),
     TRUE_FALSE("True / False"),
-    SHORT     ("Short answer");
+    SHORT     ("Short answer"),
+    FILL_IN_THE_BLANK("Fill in the blank");
 
     private final String label;
 

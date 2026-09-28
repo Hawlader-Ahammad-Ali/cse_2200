@@ -8,6 +8,7 @@ import com.mindmap.service.FlashcardService;
 import com.mindmap.service.KnowledgeService;
 import com.mindmap.util.AppContext;
 import com.mindmap.util.Dialogs;
+import com.mindmap.util.BusyIndicator;
 import com.mindmap.util.exceptions.ServiceException;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -56,6 +57,7 @@ public class FlashcardsView extends StackPane {
     private final CheckBox dueFilter = new CheckBox("Due only");
     private final Label countLabel = new Label("0 cards");
     private final Label dueLabel = new Label();
+    private final BusyIndicator busyIndicator = new BusyIndicator(null);
 
     private final VBox landing;
 
@@ -91,7 +93,7 @@ public class FlashcardsView extends StackPane {
         addBtn.getStyleClass().add("secondary-button");
         addBtn.setOnAction(e -> openCreateDialog());
 
-        HBox header = new HBox(8, titleBox, spacer, reviewBtn, aiBtn, addBtn);
+        HBox header = new HBox(8, titleBox, spacer, busyIndicator, reviewBtn, aiBtn, addBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 4, 0));
 
@@ -310,90 +312,43 @@ public class FlashcardsView extends StackPane {
      *  - has a 60-second timeout so the dialog always closes
      *  - logs every step for diagnostics
      */
+    
     private void runAIGeneration(KnowledgeItem item) {
         log.info("AI flashcard generation requested for item id={} title='{}'",
                 item.getId(), item.getTitle());
 
-        final Alert progress = new Alert(Alert.AlertType.INFORMATION);
-        progress.setTitle("AI is thinking…");
-        progress.setHeaderText("Generating flashcards for: " + item.getTitle());
-        progress.setContentText("This may take a few seconds.");
-        progress.getDialogPane().getButtonTypes().clear();
-        progress.setResizable(false);
-        applyStylesheet(progress.getDialogPane());
-
-        // Atomic done flag so timeout + worker don't double-fire
-        final java.util.concurrent.atomic.AtomicBoolean done =
-                new java.util.concurrent.atomic.AtomicBoolean(false);
-
-        // --- 60s timeout guard ---
-        Thread timeout = new Thread(() -> {
-            try { Thread.sleep(60_000); } catch (InterruptedException e) { return; }
-            if (done.compareAndSet(false, true)) {
-                log.warn("AI flashcard generation timed out after 60s");
-                Platform.runLater(() -> {
-                    safeClose(progress);
-                    Dialogs.error("AI generation timed out",
-                            "The AI did not respond within 60 seconds. "
-                                    + "Check your internet connection, or run in offline mode "
-                                    + "(unset MINDMAP_AI_KEY).");
-                });
-            }
-        }, "ai-flashcard-timeout");
-        timeout.setDaemon(true);
-        timeout.start();
-
-        // --- worker ---
+        busyIndicator.start("Generating...");
+        
         Thread worker = new Thread(() -> {
             try {
-                log.info("Worker: calling AIService.generateFlashcards…");
                 List<SuggestedFlashcard> suggestions =
                         ServiceRegistry.aiService().generateFlashcards(item);
-                log.info("Worker: AI returned {} suggestions", suggestions.size());
 
-                if (done.compareAndSet(false, true)) {
-                    Platform.runLater(() -> {
-                        safeClose(progress);
-
-                        if (suggestions.isEmpty()) {
-                            Dialogs.warning("No suggestions",
-                                    "The AI returned no flashcards. Try a different concept.");
-                            return;
-                        }
-
-                        AIFlashcardDialog dlg = new AIFlashcardDialog(item, suggestions);
-                        dlg.showAndWait().ifPresent(created -> {
-                            AppContext.getInstance().setStatusMessage(
-                                    created.size() + " flashcard(s) created.");
-                            refresh();
-                        });
+                Platform.runLater(() -> {
+                    busyIndicator.stop();
+                    if (suggestions.isEmpty()) {
+                        Dialogs.warning("No suggestions", "The AI returned no flashcards.");
+                        return;
+                    }
+                    AIFlashcardDialog dlg = new AIFlashcardDialog(item, suggestions);
+                    dlg.showAndWait().ifPresent(created -> {
+                        AppContext.getInstance().setStatusMessage(created.size() + " flashcard(s) created.");
+                        refresh();
                     });
-                }
+                });
             } catch (Throwable t) {
                 log.error("AI flashcard generation failed", t);
-                if (done.compareAndSet(false, true)) {
+                Platform.runLater(() -> {
+                    busyIndicator.stop();
                     String msg = t.getMessage();
-                    if (msg == null || msg.isBlank()) msg = t.getClass().getSimpleName();
-                    final String finalMsg = msg;
-                    Platform.runLater(() -> {
-                        safeClose(progress);
-                        Dialogs.error("AI generation failed", finalMsg);
-                    });
-                }
+                    Dialogs.error("AI generation failed", msg != null ? msg : "Unknown error");
+                });
             }
         }, "ai-flashcard-worker");
         worker.setDaemon(true);
         worker.start();
-
-        log.info("Worker started; showing progress dialog");
-        progress.show();
     }
-
-    private void safeClose(Alert alert) {
-        try { alert.close(); } catch (Exception ignore) { }
-    }
-
-    private void applyStylesheet(DialogPane pane) {
+private void applyStylesheet(DialogPane pane) {
         try {
             var css = getClass().getResource("/css/app.css");
             if (css != null) pane.getStylesheets().add(css.toExternalForm());

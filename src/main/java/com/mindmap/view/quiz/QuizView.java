@@ -8,6 +8,7 @@ import com.mindmap.service.KnowledgeService;
 import com.mindmap.service.QuizService;
 import com.mindmap.util.AppContext;
 import com.mindmap.util.Dialogs;
+import com.mindmap.util.BusyIndicator;
 import com.mindmap.util.exceptions.ServiceException;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -56,6 +57,7 @@ public class QuizView extends StackPane {
     private final TableView<QuizQuestion> table = new TableView<>(data);
     private final Label statsLabel      = new Label();
     private final Label questionsCount  = new Label("0 questions");
+    private final BusyIndicator busyIndicator = new BusyIndicator(null);
 
     /** Held as a field so runAIGeneration can toggle its state. */
     private Button aiGenerateBtn;
@@ -92,7 +94,7 @@ public class QuizView extends StackPane {
         newBtn.getStyleClass().add("secondary-button");
         newBtn.setOnAction(e -> openNewQuestionDialog());
 
-        HBox header = new HBox(8, titleBox, spacer, startBtn, aiGenerateBtn, newBtn);
+        HBox header = new HBox(8, titleBox, spacer, busyIndicator, startBtn, aiGenerateBtn, newBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 4, 0));
 
@@ -305,82 +307,53 @@ public class QuizView extends StackPane {
      *  - Background worker catches Throwable, always restores button state.
      *  - 45-second timeout guard so the button never stays stuck.
      */
+    
     private void runAIGeneration(KnowledgeItem item) {
         log.info("AI quiz generation requested for item id={} title='{}'",
                 item.getId(), item.getTitle());
 
-        if (aiGenerateBtn == null) return;
-        aiGenerateBtn.setDisable(true);
-        aiGenerateBtn.setText(AI_BUTTON_BUSY);
+        if (aiGenerateBtn != null) {
+            aiGenerateBtn.setDisable(true);
+        }
+        busyIndicator.start("Generating...");
 
-        final AtomicBoolean done = new AtomicBoolean(false);
-
-        // --- 45s timeout guard ---
-        Thread timeout = new Thread(() -> {
-            try { Thread.sleep(45_000); } catch (InterruptedException e) { return; }
-            if (done.compareAndSet(false, true)) {
-                log.warn("AI quiz generation timed out after 45s");
-                Platform.runLater(() -> {
-                    restoreAIButton();
-                    Dialogs.error("AI timed out",
-                            "No response within 45 seconds. "
-                                    + "Try again, or check that MINDMAP_AI_KEY is not set "
-                                    + "to an invalid value (unset it to use offline mock).");
-                });
-            }
-        }, "ai-quiz-timeout");
-        timeout.setDaemon(true);
-        timeout.start();
-
-        // --- worker ---
         Thread worker = new Thread(() -> {
             try {
-                log.info("Worker: calling AIService.generateQuizQuestions…");
                 List<SuggestedQuizQuestion> suggestions =
                         ServiceRegistry.aiService().generateQuizQuestions(item);
-                log.info("Worker: AI returned {} suggestions", suggestions.size());
 
-                if (done.compareAndSet(false, true)) {
-                    Platform.runLater(() -> {
-                        restoreAIButton();
+                Platform.runLater(() -> {
+                    busyIndicator.stop();
+                    restoreAIButton();
 
-                        if (suggestions.isEmpty()) {
-                            Dialogs.warning("No suggestions",
-                                    "The AI returned no questions. Try a different concept.");
-                            return;
-                        }
+                    if (suggestions.isEmpty()) {
+                        Dialogs.warning("No suggestions", "The AI returned no questions.");
+                        return;
+                    }
 
-                        try {
-                            AIQuizDialog dlg = new AIQuizDialog(item, suggestions);
-                            dlg.showAndWait().ifPresent(created -> {
-                                AppContext.getInstance().setStatusMessage(
-                                        created.size() + " question(s) created.");
-                                refresh();
-                            });
-                        } catch (Throwable t) {
-                            log.error("Error opening AI quiz dialog", t);
-                            Dialogs.error("Could not open dialog", t.getMessage());
-                        }
-                    });
-                }
+                    try {
+                        AIQuizDialog dlg = new AIQuizDialog(item, suggestions);
+                        dlg.showAndWait().ifPresent(created -> {
+                            AppContext.getInstance().setStatusMessage(created.size() + " question(s) created.");
+                            refresh();
+                        });
+                    } catch (Throwable t) {
+                        Dialogs.error("Could not open dialog", t.getMessage());
+                    }
+                });
             } catch (Throwable t) {
-                log.error("AI quiz generation failed", t);
-                if (done.compareAndSet(false, true)) {
+                Platform.runLater(() -> {
+                    busyIndicator.stop();
+                    restoreAIButton();
                     String msg = t.getMessage();
-                    if (msg == null || msg.isBlank()) msg = t.getClass().getSimpleName();
-                    final String finalMsg = msg;
-                    Platform.runLater(() -> {
-                        restoreAIButton();
-                        Dialogs.error("AI generation failed", finalMsg);
-                    });
-                }
+                    Dialogs.error("AI generation failed", msg != null ? msg : "Unknown error");
+                });
             }
         }, "ai-quiz-worker");
         worker.setDaemon(true);
         worker.start();
     }
-
-    private void restoreAIButton() {
+private void restoreAIButton() {
         if (aiGenerateBtn != null) {
             aiGenerateBtn.setDisable(false);
             aiGenerateBtn.setText(AI_BUTTON_IDLE);

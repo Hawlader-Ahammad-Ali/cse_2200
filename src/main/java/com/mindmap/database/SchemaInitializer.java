@@ -42,6 +42,7 @@ public final class SchemaInitializer {
             if (isInitialized(conn)) {
                 int version = readSchemaVersion(conn);
                 log.info("Database schema already initialized (version {}).", version);
+                applyMigrations(conn);
                 return;
             }
 
@@ -174,5 +175,28 @@ public final class SchemaInitializer {
         String tail = current.toString().trim();
         if (!tail.isEmpty()) statements.add(tail);
         return statements;
+    }
+
+    private static void applyMigrations(Connection conn) throws SQLException {
+        String sql = """
+            CREATE TABLE IF NOT EXISTS notes (
+                id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id            INTEGER NOT NULL,
+                title              TEXT NOT NULL,
+                body               TEXT,
+                attached_source_id INTEGER,
+                created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at         TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY(attached_source_id) REFERENCES sources(id) ON DELETE SET NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
+            CREATE INDEX IF NOT EXISTS idx_notes_source_id ON notes(attached_source_id);
+        """;
+        try (Statement st = conn.createStatement()) {
+            for (String stmt : splitSqlStatements(sql)) {
+                if (!stmt.isBlank()) st.execute(stmt);
+            }
+        }
     }
 }

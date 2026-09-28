@@ -152,7 +152,7 @@ public class QuizSessionView extends VBox {
                 row.setAlignment(Pos.CENTER);
                 inputArea.getChildren().add(row);
             }
-            case SHORT -> {
+            case SHORT, FILL_IN_THE_BLANK -> {
                 TextField field = new TextField();
                 field.setPromptText("Type your answer, then press Enter");
                 field.getStyleClass().add("auth-text-field");

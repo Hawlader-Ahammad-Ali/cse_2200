@@ -166,7 +166,7 @@ public class QuizQuestionFormDialog {
                 tfCorrect.setMaxWidth(Double.MAX_VALUE);
                 answerFieldsBox.getChildren().addAll(label("Correct answer"), tfCorrect);
             }
-            case SHORT -> {
+            case SHORT, FILL_IN_THE_BLANK -> {
                 shortAnswer.setPromptText("Expected answer (1-3 words)");
                 shortAnswer.getStyleClass().add("auth-text-field");
                 answerFieldsBox.getChildren().addAll(label("Expected answer"), shortAnswer);
@@ -217,7 +217,7 @@ public class QuizQuestionFormDialog {
                 mcqCorrect.setValue(q.getCorrectAnswer());
             }
             case TRUE_FALSE -> tfCorrect.setValue(q.getCorrectAnswer());
-            case SHORT -> shortAnswer.setText(q.getCorrectAnswer());
+            case SHORT, FILL_IN_THE_BLANK -> shortAnswer.setText(q.getCorrectAnswer());
         }
     }
 
@@ -243,7 +243,7 @@ public class QuizQuestionFormDialog {
                 q.setOptions(new ArrayList<>());
                 q.setCorrectAnswer(tfCorrect.getValue());
             }
-            case SHORT -> {
+            case SHORT, FILL_IN_THE_BLANK -> {
                 q.setOptions(new ArrayList<>());
                 q.setCorrectAnswer(shortAnswer.getText().trim());
             }
@@ -267,7 +267,7 @@ public class QuizQuestionFormDialog {
             case TRUE_FALSE -> {
                 if (tfCorrect.getValue() == null) return "Pick true or false.";
             }
-            case SHORT -> {
+            case SHORT, FILL_IN_THE_BLANK -> {
                 if (shortAnswer.getText() == null || shortAnswer.getText().isBlank())
                     return "Expected answer is required.";
             }
