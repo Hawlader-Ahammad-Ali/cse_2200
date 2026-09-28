@@ -11,6 +11,7 @@ import com.mindmap.view.knowledge.TakeawayEditorDialog;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -24,6 +25,7 @@ import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
+import com.mindmap.export.ExportButtonHelper;
 
 /**
  * Read-only detail view for a single source.
@@ -79,6 +81,8 @@ public class SourceDetailView extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        Button exportBtn = ExportButtonHelper.sourceExportButton(source);
+
         Button editBtn = new Button("✎  Edit");
         editBtn.getStyleClass().add("secondary-button");
         editBtn.setOnAction(e -> onEdit.accept(source));
@@ -87,7 +91,7 @@ public class SourceDetailView extends VBox {
         deleteBtn.getStyleClass().add("danger-button");
         deleteBtn.setOnAction(e -> onDelete.run());
 
-        HBox header = new HBox(10, backBtn, spacer, editBtn, deleteBtn);
+        HBox header = new HBox(10, backBtn, spacer, exportBtn, editBtn, deleteBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         return header;
     }

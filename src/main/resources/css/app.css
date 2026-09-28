@@ -477,3 +477,128 @@
     -fx-font-size: 12.5px;
     -fx-text-fill: -fx-text-secondary;
 }
+/* ============================================================
+   Phase 13 — quiz
+   ============================================================ */
+
+.quiz-feedback-correct {
+    -fx-text-fill: #27AE60;
+    -fx-font-weight: bold;
+}
+
+.quiz-feedback-wrong {
+    -fx-text-fill: #E74C3C;
+    -fx-font-weight: bold;
+}
+/* ============================================================
+   Phase 14 — timeline
+   ============================================================ */
+
+.timeline-month-header {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 14 4 4 4;
+}
+
+.timeline-event-row {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 8;
+    -fx-padding: 10 14 10 14;
+}
+
+.timeline-event-row:hover {
+    -fx-background-color: -fx-bg-tertiary;
+}
+
+.timeline-date-picker {
+    -fx-background-color: -fx-bg-primary;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: -fx-border-color-app;
+    -fx-padding: 4 8 4 8;
+}
+
+.timeline-date-picker:focused {
+    -fx-border-color: -fx-accent;
+}
+/* ============================================================
+   Phase 15 — dashboard + analytics
+   ============================================================ */
+
+/* Chart theming — matches the app's neutral palette */
+.chart {
+    -fx-background-color: transparent;
+    -fx-padding: 6;
+}
+
+.chart-title {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.chart-plot-background {
+    -fx-background-color: -fx-bg-primary;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: -fx-border-color-app;
+    -fx-stroke-dash-array: 2 4;
+}
+
+.axis {
+    -fx-tick-label-fill: -fx-text-secondary;
+    -fx-font-size: 10.5px;
+}
+
+.axis-label {
+    -fx-text-fill: -fx-text-secondary;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-legend-item {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 11px;
+}
+
+.default-color0.chart-bar   { -fx-bar-fill: #3498DB; }
+.default-color1.chart-bar   { -fx-bar-fill: #9B59B6; }
+.default-color2.chart-bar   { -fx-bar-fill: #27AE60; }
+.default-color3.chart-bar   { -fx-bar-fill: #F39C12; }
+
+.default-color0.chart-pie   { -fx-pie-color: #3498DB; }
+.default-color1.chart-pie   { -fx-pie-color: #9B59B6; }
+.default-color2.chart-pie   { -fx-pie-color: #27AE60; }
+.default-color3.chart-pie   { -fx-pie-color: #F39C12; }
+.default-color4.chart-pie   { -fx-pie-color: #E74C3C; }
+.default-color5.chart-pie   { -fx-pie-color: #1ABC9C; }
+
+.default-color0.chart-series-line { -fx-stroke: #1ABC9C; -fx-stroke-width: 2px; }
+/* ============================================================
+   Phase 16 — PDF export
+   ============================================================ */
+
+.export-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-accent-hover;
+    -fx-font-size: 12.5px;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6 12 6 12;
+    -fx-cursor: hand;
+}
+
+.export-button:hover {
+    -fx-background-color: -fx-accent-soft;
+}
+
+.export-button:disabled {
+    -fx-opacity: 0.55;
+    -fx-cursor: default;
+}

@@ -21,7 +21,7 @@ import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
-
+import com.mindmap.export.ExportButtonHelper;
 /**
  * Read-only detail view for a knowledge item, including the
  * "Where Did I Learn This?" section (linked sources).
@@ -54,7 +54,6 @@ public class KnowledgeDetailView extends VBox {
     }
 
     // ------------------------------------------------------------- header
-
     private HBox buildHeader() {
         Button backBtn = new Button("←  Back to Knowledge");
         backBtn.getStyleClass().add("secondary-button");
@@ -62,6 +61,8 @@ public class KnowledgeDetailView extends VBox {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button exportBtn = ExportButtonHelper.knowledgeExportButton(item);
 
         Button editBtn = new Button("✎  Edit");
         editBtn.getStyleClass().add("secondary-button");
@@ -71,12 +72,10 @@ public class KnowledgeDetailView extends VBox {
         deleteBtn.getStyleClass().add("danger-button");
         deleteBtn.setOnAction(e -> onDelete.run());
 
-        HBox header = new HBox(10, backBtn, spacer, editBtn, deleteBtn);
+        HBox header = new HBox(10, backBtn, spacer, exportBtn, editBtn, deleteBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         return header;
     }
-
-    // ------------------------------------------------------------- body
 
     private ScrollPane buildScrollableBody() {
         VBox body = new VBox(14);

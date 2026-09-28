@@ -1,13 +1,6 @@
 package com.mindmap.config;
 
-import com.mindmap.service.AIService;
-import com.mindmap.service.AuthService;
-import com.mindmap.service.FlashcardService;
-import com.mindmap.service.GraphService;
-import com.mindmap.service.KnowledgeService;
-import com.mindmap.service.ReviewService;
-import com.mindmap.service.SearchService;
-import com.mindmap.service.SourceService;
+import com.mindmap.service.*;
 
 /**
  * Minimal service container (manual dependency injection).
@@ -22,6 +15,9 @@ public final class ServiceRegistry {
     private static AIService        aiService;
     private static ReviewService    reviewService;
     private static FlashcardService flashcardService;
+    private static QuizService      quizService;
+    private static TimelineService  timelineService;
+    private static AnalyticsService analyticsService;
 
     private ServiceRegistry() { }
 
@@ -29,40 +25,45 @@ public final class ServiceRegistry {
         if (authService == null) authService = new AuthService();
         return authService;
     }
-
     public static synchronized SourceService sourceService() {
         if (sourceService == null) sourceService = new SourceService();
         return sourceService;
     }
-
     public static synchronized KnowledgeService knowledgeService() {
         if (knowledgeService == null) knowledgeService = new KnowledgeService();
         return knowledgeService;
     }
-
     public static synchronized SearchService searchService() {
         if (searchService == null) searchService = new SearchService();
         return searchService;
     }
-
     public static synchronized GraphService graphService() {
         if (graphService == null) graphService = new GraphService();
         return graphService;
     }
-
     public static synchronized AIService aiService() {
         if (aiService == null) aiService = new AIService();
         return aiService;
     }
-
     public static synchronized ReviewService reviewService() {
         if (reviewService == null) reviewService = new ReviewService();
         return reviewService;
     }
-
     public static synchronized FlashcardService flashcardService() {
         if (flashcardService == null) flashcardService = new FlashcardService();
         return flashcardService;
+    }
+    public static synchronized QuizService quizService() {
+        if (quizService == null) quizService = new QuizService();
+        return quizService;
+    }
+    public static synchronized TimelineService timelineService() {
+        if (timelineService == null) timelineService = new TimelineService();
+        return timelineService;
+    }
+    public static synchronized AnalyticsService analyticsService() {
+        if (analyticsService == null) analyticsService = new AnalyticsService();
+        return analyticsService;
     }
 
     public static synchronized void reset() { }

@@ -15,7 +15,10 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
+import com.mindmap.view.quiz.QuizView;
+import com.mindmap.view.timeline.TimelineView;
+import com.mindmap.view.analytics.AnalyticsView;
+import com.mindmap.view.dashboard.DashboardView;
 /**
  * Central view router. MainLayout owns the sidebar + top bar;
  * only the center content area changes when the user navigates.

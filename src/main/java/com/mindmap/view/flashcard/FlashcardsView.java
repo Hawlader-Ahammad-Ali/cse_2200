@@ -15,7 +15,19 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -46,11 +58,7 @@ public class FlashcardsView extends StackPane {
 
     private final VBox landing;
 
-    // ------------------------------------------------------ static deep-link handoff
-    private static FlashcardsView currentInstance;
-
     public FlashcardsView() {
-        currentInstance = this;
         landing = buildLanding();
         getChildren().add(landing);
         refresh();
@@ -168,7 +176,6 @@ public class FlashcardsView extends StackPane {
             return row;
         });
 
-        // Context menu for right-click
         ContextMenu menu = new ContextMenu();
         MenuItem editItem = new MenuItem("Edit");
         editItem.setOnAction(e -> {
@@ -278,7 +285,6 @@ public class FlashcardsView extends StackPane {
     // ------------------------------------------------------------- AI
 
     private void openAIGenerateDialog() {
-        // Pick a knowledge item first
         List<KnowledgeItem> items;
         try { items = knowledgeService.getAll(); }
         catch (ServiceException e) { items = List.of(); }
@@ -294,52 +300,107 @@ public class FlashcardsView extends StackPane {
         pick.setHeaderText("Which concept should the AI create cards for?");
         pick.setContentText("Knowledge item:");
         applyStylesheet(pick.getDialogPane());
-        pick.showAndWait().ifPresent(item -> runAIGeneration(item));
+        pick.showAndWait().ifPresent(this::runAIGeneration);
     }
 
+    /**
+     * Bulletproof AI generation:
+     *  - catches Throwable (not just ServiceException)
+     *  - has a 60-second timeout so the dialog always closes
+     *  - logs every step for diagnostics
+     */
     private void runAIGeneration(KnowledgeItem item) {
-        // Show a small progress dialog while the AI runs
-        Alert progress = new Alert(Alert.AlertType.INFORMATION);
+        log.info("AI flashcard generation requested for item id={} title='{}'",
+                item.getId(), item.getTitle());
+
+        final Alert progress = new Alert(Alert.AlertType.INFORMATION);
         progress.setTitle("AI is thinking…");
         progress.setHeaderText("Generating flashcards for: " + item.getTitle());
         progress.setContentText("This may take a few seconds.");
         progress.getDialogPane().getButtonTypes().clear();
+        progress.setResizable(false);
+        applyStylesheet(progress.getDialogPane());
 
-        // Run in background
-        Thread t = new Thread(() -> {
-            try {
-                List<SuggestedFlashcard> suggestions =
-                        ServiceRegistry.aiService().generateFlashcards(item);
+        // Atomic done flag so timeout + worker don't double-fire
+        final java.util.concurrent.atomic.AtomicBoolean done =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
 
+        // --- 60s timeout guard ---
+        Thread timeout = new Thread(() -> {
+            try { Thread.sleep(60_000); } catch (InterruptedException e) { return; }
+            if (done.compareAndSet(false, true)) {
+                log.warn("AI flashcard generation timed out after 60s");
                 Platform.runLater(() -> {
-                    progress.close();
-                    AIFlashcardDialog dlg = new AIFlashcardDialog(item, suggestions);
-                    dlg.showAndWait().ifPresent(created -> {
-                        AppContext.getInstance().setStatusMessage(
-                                created.size() + " flashcard(s) created.");
-                        refresh();
-                    });
-                });
-            } catch (ServiceException ex) {
-                Platform.runLater(() -> {
-                    progress.close();
-                    Dialogs.error("AI generation failed", ex.getMessage());
+                    safeClose(progress);
+                    Dialogs.error("AI generation timed out",
+                            "The AI did not respond within 60 seconds. "
+                                    + "Check your internet connection, or run in offline mode "
+                                    + "(unset MINDMAP_AI_KEY).");
                 });
             }
-        }, "ai-flashcard-worker");
-        t.setDaemon(true);
-        t.start();
+        }, "ai-flashcard-timeout");
+        timeout.setDaemon(true);
+        timeout.start();
 
+        // --- worker ---
+        Thread worker = new Thread(() -> {
+            try {
+                log.info("Worker: calling AIService.generateFlashcards…");
+                List<SuggestedFlashcard> suggestions =
+                        ServiceRegistry.aiService().generateFlashcards(item);
+                log.info("Worker: AI returned {} suggestions", suggestions.size());
+
+                if (done.compareAndSet(false, true)) {
+                    Platform.runLater(() -> {
+                        safeClose(progress);
+
+                        if (suggestions.isEmpty()) {
+                            Dialogs.warning("No suggestions",
+                                    "The AI returned no flashcards. Try a different concept.");
+                            return;
+                        }
+
+                        AIFlashcardDialog dlg = new AIFlashcardDialog(item, suggestions);
+                        dlg.showAndWait().ifPresent(created -> {
+                            AppContext.getInstance().setStatusMessage(
+                                    created.size() + " flashcard(s) created.");
+                            refresh();
+                        });
+                    });
+                }
+            } catch (Throwable t) {
+                log.error("AI flashcard generation failed", t);
+                if (done.compareAndSet(false, true)) {
+                    String msg = t.getMessage();
+                    if (msg == null || msg.isBlank()) msg = t.getClass().getSimpleName();
+                    final String finalMsg = msg;
+                    Platform.runLater(() -> {
+                        safeClose(progress);
+                        Dialogs.error("AI generation failed", finalMsg);
+                    });
+                }
+            }
+        }, "ai-flashcard-worker");
+        worker.setDaemon(true);
+        worker.start();
+
+        log.info("Worker started; showing progress dialog");
         progress.show();
     }
 
+    private void safeClose(Alert alert) {
+        try { alert.close(); } catch (Exception ignore) { }
+    }
+
     private void applyStylesheet(DialogPane pane) {
-        var css = getClass().getResource("/css/app.css");
-        if (css != null) pane.getStylesheets().add(css.toExternalForm());
-        String theme = AppContext.getInstance().isDarkTheme()
-                ? "/css/theme-dark.css" : "/css/theme-light.css";
-        var tcss = getClass().getResource(theme);
-        if (tcss != null) pane.getStylesheets().add(tcss.toExternalForm());
+        try {
+            var css = getClass().getResource("/css/app.css");
+            if (css != null) pane.getStylesheets().add(css.toExternalForm());
+            String theme = AppContext.getInstance().isDarkTheme()
+                    ? "/css/theme-dark.css" : "/css/theme-light.css";
+            var tcss = getClass().getResource(theme);
+            if (tcss != null) pane.getStylesheets().add(tcss.toExternalForm());
+        } catch (Exception ignore) { }
     }
 
     // ------------------------------------------------------------- review
