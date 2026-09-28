@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Priority?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mindmap.view.fxml.DashboardFxmlController"
+      spacing="14">
+
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="Dashboard" styleClass="view-header"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusMessage" styleClass="view-subtitle"
+               text="Loading…"/>
+    </HBox>
+
+    <GridPane fx:id="statsGrid" hgap="14" vgap="14"/>
+
+    <Label text="Recently Added Knowledge" styleClass="section-header"/>
+    <VBox fx:id="recentBox" spacing="6"/>
+
+    <padding><Insets top="4"/></padding>
+</VBox>

@@ -1,27 +1,19 @@
 package com.mindmap.algorithm;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * SuperMemo 2 (SM-2) spaced repetition algorithm.
  *
- * <p>Given a quality rating (0–5) and the current state, computes the
- * next interval, ease factor, and review date.</p>
- *
- * <p>Quality mapping in the UI:
- * <ul>
- *   <li><b>Again</b> = 1 (failed recall)</li>
- *   <li><b>Hard</b>  = 3</li>
- *   <li><b>Good</b>  = 4</li>
- *   <li><b>Easy</b>  = 5</li>
- * </ul></p>
+ * <p>Java 11-compatible version (no records). The API is identical to the
+ * record-based version — {@code Schedule} is a plain immutable class.</p>
  */
 public final class SM2Scheduler {
 
     public static final double DEFAULT_EF = 2.5;
     public static final double MIN_EF     = 1.3;
 
-    // UI quality constants
     public static final int QUALITY_AGAIN = 1;
     public static final int QUALITY_HARD  = 3;
     public static final int QUALITY_GOOD  = 4;
@@ -29,25 +21,15 @@ public final class SM2Scheduler {
 
     private SM2Scheduler() { }
 
-    /**
-     * Computes the new schedule.
-     *
-     * @param quality      0–5. Below 3 resets repetitions.
-     * @param repetitions  number of successful reviews so far
-     * @param intervalDays current interval in days
-     * @param easeFactor   current ease factor (>= MIN_EF)
-     * @return new schedule; never null
-     */
     public static Schedule calculate(int quality,
                                      int repetitions,
                                      int intervalDays,
                                      double easeFactor) {
 
         if (quality < 0 || quality > 5) {
-            throw new IllegalArgumentException("Quality must be 0–5, was " + quality);
+            throw new IllegalArgumentException("Quality must be 0-5, was " + quality);
         }
 
-        // Update ease factor
         double newEF = easeFactor
                 + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
         if (newEF < MIN_EF) newEF = MIN_EF;
@@ -56,7 +38,6 @@ public final class SM2Scheduler {
         int newInterval;
 
         if (quality < 3) {
-            // Failed recall — reset
             newReps = 0;
             newInterval = 1;
         } else {
@@ -65,16 +46,50 @@ public final class SM2Scheduler {
             else if (newReps == 2) newInterval = 6;
             else                   newInterval = (int) Math.round(intervalDays * newEF);
             if (newInterval < 1) newInterval = 1;
-            if (newInterval > 365 * 5) newInterval = 365 * 5;   // cap at 5 years
+            if (newInterval > 365 * 5) newInterval = 365 * 5;
         }
 
         LocalDate next = LocalDate.now().plusDays(newInterval);
         return new Schedule(newReps, newInterval, newEF, next);
     }
 
-    /** Immutable result holder. */
-    public record Schedule(int repetitions,
-                           int intervalDays,
-                           double easeFactor,
-                           LocalDate nextReviewDate) { }
+    /** Immutable result holder (Java 11-compatible). */
+    public static final class Schedule {
+        private final int repetitions;
+        private final int intervalDays;
+        private final double easeFactor;
+        private final LocalDate nextReviewDate;
+
+        public Schedule(int repetitions, int intervalDays,
+                        double easeFactor, LocalDate nextReviewDate) {
+            this.repetitions = repetitions;
+            this.intervalDays = intervalDays;
+            this.easeFactor = easeFactor;
+            this.nextReviewDate = nextReviewDate;
+        }
+
+        public int repetitions()    { return repetitions; }
+        public int intervalDays()   { return intervalDays; }
+        public double easeFactor()  { return easeFactor; }
+        public LocalDate nextReviewDate() { return nextReviewDate; }
+
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Schedule)) return false;
+            Schedule s = (Schedule) o;
+            return repetitions == s.repetitions
+                    && intervalDays == s.intervalDays
+                    && Double.compare(s.easeFactor, easeFactor) == 0
+                    && Objects.equals(nextReviewDate, s.nextReviewDate);
+        }
+
+        @Override public int hashCode() {
+            return Objects.hash(repetitions, intervalDays, easeFactor, nextReviewDate);
+        }
+
+        @Override public String toString() {
+            return "Schedule{reps=" + repetitions + ", interval=" + intervalDays
+                    + "d, EF=" + easeFactor + ", next=" + nextReviewDate + "}";
+        }
+    }
 }

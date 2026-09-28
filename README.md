@@ -1,88 +1,33 @@
-# MindMap — Personal Knowledge & Learning Discovery Platform
+# MindMap
 
-**"Learn from anything. Connect everything. Remember what matters."**
+**MindMap** is a Personal Knowledge & Learning Discovery Platform. Built with JavaFX and SQLite, it serves as a "Second Brain" by combining source logging, AI-accelerated knowledge extraction, graph visualization, and spaced-repetition study tools.
 
-A JavaFX desktop application that turns information from movies, books, articles,
-courses, projects, and conversations into an interconnected personal knowledge graph.
+## Key Features
+- **Source Tracking:** Log articles, books, courses, and videos.
+- **AI Extraction:** Use OpenAI to automatically parse key concepts, facts, and models from your sources.
+- **Knowledge Base:** Organize discrete pieces of information with tags, categories, and source linking.
+- **Spaced Repetition (SM-2):** Built-in flashcard review system that optimizes your study schedule.
+- **Graph Visualization:** See how your knowledge connects through a physics-based force-directed graph.
+- **Backup & Restore:** Securely export your entire database and attachments to a portable ZIP file.
 
----
+## Documentation
+Please refer to the `docs/` directory for detailed information:
+- [System Architecture](docs/SYSTEM_ARCHITECTURE.md)
+- [Entity-Relationship Diagram](docs/ER_DIAGRAM.md)
+- [Sequence Diagrams](docs/SEQUENCE_DIAGRAMS.md)
+- [AI Workflow](docs/AI_WORKFLOW.md)
+- [Algorithms Reference](docs/ALGORITHMS.md)
+- [Testing Documentation](docs/TESTING.md)
+- [Installation Guide](docs/INSTALLATION.md)
+- [User Manual](docs/USER_MANUAL.md)
+- [Future Improvements](docs/FUTURE_IMPROVEMENTS.md)
 
-## Requirements
+## Tech Stack
+- **UI:** JavaFX 21
+- **Database:** SQLite (JDBC)
+- **JSON:** Jackson
+- **Security:** jBcrypt
+- **Build:** Maven
 
-- **Java 17** or newer (JDK, not JRE)
-- **Maven 3.9+**
-- Internet connection on first run (Maven downloads dependencies)
-
-Verify your setup:
-
-    java -version
-    mvn -version
-
----
-
-## Run the application
-
-From the project root:
-
-    mvn clean javafx:run
-
-The first launch will:
-
-1. Create the app data directory
-2. Create the SQLite database and all tables
-3. Open a bootstrap window confirming Phase 1 is complete
-
----
-
-## Data directory locations
-
-| OS      | Path |
-|---------|------|
-| Windows | `%APPDATA%\MindMap\` |
-| macOS   | `~/Library/Application Support/MindMap/` |
-| Linux   | `~/.MindMap/` |
-
-Inside you will find `mindmap.db` (SQLite), plus `backups/` and `attachments/`.
-
----
-
-## Optional environment variables
-
-| Variable                | Purpose                          | Default                          |
-|-------------------------|----------------------------------|----------------------------------|
-| `MINDMAP_AI_KEY`        | AI provider API key (Phase 9)    | *(empty — AI disabled)*          |
-| `MINDMAP_AI_BASE_URL`   | AI provider base URL             | `https://api.openai.com/v1`      |
-| `MINDMAP_AI_MODEL`      | Model name                       | `gpt-4o-mini`                    |
-
-Set them before running, e.g. on Windows:
-
-    set MINDMAP_AI_KEY=sk-...
-    mvn javafx:run
-
-On macOS/Linux:
-
-    export MINDMAP_AI_KEY=sk-...
-    mvn javafx:run
-
----
-
-## Development phases
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| 1 | ✅ | Project setup + database |
-| 2 | ⏳ | JavaFX UI skeleton |
-| 3 | ⏳ | (merged with Phase 1) |
-| 4 | ⏳ | Authentication |
-| … | ⏳ | see architecture doc |
-
----
-
-## Reset the database
-
-Delete the database file to start fresh (⚠ deletes all local data):
-
-- Windows: `del "%APPDATA%\MindMap\mindmap.db"`
-- macOS/Linux: `rm ~/.MindMap/mindmap.db` *(adjust for macOS path)*
-
-Then run again — the schema will be recreated automatically.
+## Phase 20 Final Release
+This repository represents the complete, fully polished Phase 20 release.

@@ -7,6 +7,7 @@ import com.mindmap.database.SchemaInitializer;
 import com.mindmap.model.User;
 import com.mindmap.util.AppContext;
 import com.mindmap.util.AppPaths;
+import com.mindmap.util.AppPreferences;
 import com.mindmap.util.RootNavigator;
 import com.mindmap.util.SessionManager;
 import com.mindmap.util.exceptions.AuthException;
@@ -65,7 +66,23 @@ public class Main extends Application {
             return;
         }
 
+        
         RootNavigator.setStage(stage);
+
+        // Restore window state
+        stage.setWidth(AppPreferences.getWindowWidth());
+        stage.setHeight(AppPreferences.getWindowHeight());
+        if (AppPreferences.getWindowX() != -1) stage.setX(AppPreferences.getWindowX());
+        if (AppPreferences.getWindowY() != -1) stage.setY(AppPreferences.getWindowY());
+
+        // Save window state on exit
+        stage.setOnCloseRequest(e -> {
+            AppPreferences.setWindowWidth(stage.getWidth());
+            AppPreferences.setWindowHeight(stage.getHeight());
+            AppPreferences.setWindowX(stage.getX());
+            AppPreferences.setWindowY(stage.getY());
+        });
+
 
         // -------------------------------------------------- try session restore
         Integer savedUserId = SessionManager.loadUserId();

@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ContextMenu;

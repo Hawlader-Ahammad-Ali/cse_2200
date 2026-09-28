@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+import com.mindmap.database.SchemaInitializer;   // for javadoc reference
 /**
  * Owns the single SQLite connection for the whole application.
  *
@@ -87,5 +87,33 @@ public final class DatabaseManager {
                 connection = null;
             }
         }
+    }
+    // =============================================================
+    // Test support
+    // =============================================================
+
+    /**
+     * Switches the singleton to a fresh in-memory SQLite database.
+     * <p>Intended for tests only. Call {@link SchemaInitializer#initialize()}
+     * afterward to create the schema.</p>
+     */
+    public static synchronized void useInMemoryForTesting() {
+        if (instance != null) {
+            instance.close();
+        }
+        instance = new DatabaseManager(":memory:");
+        log.info("DatabaseManager switched to in-memory mode (test)");
+    }
+
+    /**
+     * Drops the in-memory database and recreates the singleton pointing
+     * at the real on-disk file. Call this in test teardown.
+     */
+    public static synchronized void resetForTesting() {
+        if (instance != null) {
+            instance.close();
+        }
+        instance = null;
+        log.info("DatabaseManager reset (test teardown)");
     }
 }

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.mindmap.view.fxml.RegisterFxmlController"
+           styleClass="auth-root">
+
+    <VBox styleClass="auth-card" maxWidth="440" prefWidth="440"
+          alignment="TOP_LEFT" spacing="14">
+
+        <VBox alignment="CENTER" spacing="4">
+            <padding><Insets bottom="22"/></padding>
+            <Label text="🧠" styleClass="auth-brand-icon"/>
+            <Label text="MindMap" styleClass="auth-brand-title"/>
+            <Label text="Personal Knowledge &amp; Learning Discovery Platform"
+                   styleClass="auth-brand-subtitle" wrapText="true" maxWidth="320"/>
+        </VBox>
+
+        <Label text="Create your account" styleClass="auth-card-title"/>
+        <Label text="Start building your personal knowledge graph" styleClass="auth-card-subtitle"/>
+
+        <VBox spacing="6">
+            <Label text="Username" styleClass="auth-field-label"/>
+            <TextField fx:id="usernameField"
+                       promptText="3–30 letters, numbers, underscores"
+                       styleClass="auth-text-field" prefHeight="40"/>
+        </VBox>
+
+        <VBox spacing="6">
+            <Label text="Email" styleClass="auth-field-label"/>
+            <TextField fx:id="emailField"
+                       promptText="you@example.com"
+                       styleClass="auth-text-field" prefHeight="40"/>
+        </VBox>
+
+        <VBox spacing="6">
+            <Label text="Display name" styleClass="auth-field-label"/>
+            <TextField fx:id="displayNameField"
+                       promptText="Optional — shown in the app"
+                       styleClass="auth-text-field" prefHeight="40"/>
+        </VBox>
+
+        <VBox spacing="6">
+            <Label text="Password" styleClass="auth-field-label"/>
+            <PasswordField fx:id="passwordField"
+                           promptText="At least 6 characters"
+                           styleClass="auth-text-field" prefHeight="40"/>
+        </VBox>
+
+        <VBox spacing="6">
+            <Label text="Confirm password" styleClass="auth-field-label"/>
+            <PasswordField fx:id="confirmField"
+                           promptText="Repeat your password"
+                           styleClass="auth-text-field" prefHeight="40"
+                           onAction="#handleRegister"/>
+        </VBox>
+
+        <Label fx:id="errorLabel" styleClass="auth-error-label"
+               wrapText="true" visible="false" managed="false"/>
+
+        <Button fx:id="registerButton" text="Create Account"
+                styleClass="auth-primary-button"
+                prefHeight="42" maxWidth="Infinity"
+                onAction="#handleRegister"/>
+
+        <HBox alignment="CENTER" spacing="4">
+            <padding><Insets top="8"/></padding>
+            <Label text="Already have an account?" styleClass="auth-link-prefix"/>
+            <Hyperlink text="Sign in instead" styleClass="auth-link"
+                       onAction="#handleGoToLogin"/>
+        </HBox>
+    </VBox>
+</StackPane>

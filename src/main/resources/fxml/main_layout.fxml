@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mindmap.view.fxml.MainLayoutFxmlController">
+
+    <!-- LEFT: Sidebar -->
+    <left>
+        <VBox fx:id="sidebar" styleClass="sidebar">
+            <Label text="🧠  MindMap" styleClass="sidebar-logo"/>
+
+            <Label fx:id="navDashboard"  text="  🏠   Dashboard"       styleClass="sidebar-item" onMouseClicked="#navigateDashboard"/>
+            <Label fx:id="navSources"    text="  📚   Sources"         styleClass="sidebar-item" onMouseClicked="#navigateSources"/>
+            <Label fx:id="navKnowledge"  text="  🧠   Knowledge"       styleClass="sidebar-item" onMouseClicked="#navigateKnowledge"/>
+            <Label fx:id="navGraph"      text="  🕸   Knowledge Graph" styleClass="sidebar-item" onMouseClicked="#navigateGraph"/>
+
+            <Region prefHeight="12"/>
+
+            <Label fx:id="navReview"     text="  🔄   Review"          styleClass="sidebar-item" onMouseClicked="#navigateReview"/>
+            <Label fx:id="navFlashcards" text="  🎴   Flashcards"      styleClass="sidebar-item" onMouseClicked="#navigateFlashcards"/>
+            <Label fx:id="navQuiz"       text="  📝   Quiz"            styleClass="sidebar-item" onMouseClicked="#navigateQuiz"/>
+
+            <Region prefHeight="12"/>
+
+            <Label fx:id="navTimeline"   text="  📅   Timeline"        styleClass="sidebar-item" onMouseClicked="#navigateTimeline"/>
+            <Label fx:id="navAnalytics"  text="  📊   Analytics"       styleClass="sidebar-item" onMouseClicked="#navigateAnalytics"/>
+            <Label fx:id="navGoals"      text="  🎯   Goals"           styleClass="sidebar-item" onMouseClicked="#navigateGoals"/>
+
+            <Region prefHeight="12"/>
+
+            <Label fx:id="navSettings"   text="  ⚙    Settings"        styleClass="sidebar-item" onMouseClicked="#navigateSettings"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+            <Label text="v1.0.0" styleClass="sidebar-logo"
+                   style="-fx-font-size: 10.5px; -fx-opacity: 0.5;"/>
+        </VBox>
+    </left>
+
+    <!-- CENTER: Top bar + content -->
+    <center>
+        <VBox>
+            <HBox styleClass="topbar" spacing="12" alignment="CENTER_LEFT">
+                <Label fx:id="viewTitle" text="Dashboard" styleClass="topbar-title"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <TextField fx:id="searchField" styleClass="topbar-search"
+                           promptText="🔍  Search sources, knowledge, tags…   (Ctrl+K)"
+                           prefWidth="320" onAction="#handleSearch"/>
+
+                <Label fx:id="themeToggle" text="🌙" styleClass="topbar-icon-button"
+                       onMouseClicked="#handleToggleTheme"/>
+
+                <MenuButton fx:id="userMenu" text="👤" styleClass="topbar-user-menu">
+                    <items>
+                        <MenuItem text="⚙   Settings"  onAction="#navigateSettings"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="🚪  Sign Out"  onAction="#handleLogout"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+
+            <StackPane fx:id="contentArea" styleClass="content-area"
+                       VBox.vgrow="ALWAYS" minHeight="400"/>
+        </VBox>
+    </center>
+
+    <!-- BOTTOM: Status bar -->
+    <bottom>
+        <HBox styleClass="status-bar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="status-text"/>
+        </HBox>
+    </bottom>
+</BorderPane>

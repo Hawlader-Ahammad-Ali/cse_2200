@@ -2,6 +2,7 @@ package com.mindmap.util;
 
 import com.mindmap.view.knowledge.KnowledgeView;
 import com.mindmap.view.source.SourcesView;
+import com.mindmap.view.goals.GoalsView;
 import com.mindmap.view.views.*;
 import com.mindmap.view.graph.GraphView;
 import com.mindmap.view.settings.SettingsView;

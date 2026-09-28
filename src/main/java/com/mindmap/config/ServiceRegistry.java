@@ -18,6 +18,8 @@ public final class ServiceRegistry {
     private static QuizService      quizService;
     private static TimelineService  timelineService;
     private static AnalyticsService analyticsService;
+    private static BackupService    backupService;
+    private static GoalService      goalService;
 
     private ServiceRegistry() { }
 
@@ -64,6 +66,15 @@ public final class ServiceRegistry {
     public static synchronized AnalyticsService analyticsService() {
         if (analyticsService == null) analyticsService = new AnalyticsService();
         return analyticsService;
+    }
+    public static synchronized BackupService backupService() {
+        if (backupService == null) backupService = new BackupService();
+        return backupService;
+    }
+
+    public static synchronized GoalService goalService() {
+        if (goalService == null) goalService = new GoalService();
+        return goalService;
     }
 
     public static synchronized void reset() { }
